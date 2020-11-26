@@ -1,0 +1,42 @@
+version: "3.1"
+
+services:
+  site:
+    build: ./build/site
+    #   image: schoj/site
+    container_name: oj-site
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+      - 9999:9999
+      - 9998:9998
+      - 15100:15100
+      - 15101:15101
+      - 15102:15102
+    volumes:
+      - $PWD/data/site:/site
+      - $PWD/data/problems:/problems
+    depends_on:
+      - db
+
+  judge:
+    build: ./build/judge
+    #   image: schoj/judge
+    container_name: oj-judger
+    privileged: true
+    restart: always
+    depends_on:
+      - site
+    volumes:
+      - $PWD/data/problems:/problems
+    env_file: judge1.env
+
+  db:
+    image: mariadb:10.3.10
+    environment:
+      - MYSQL_ROOT_PASSWORD=dmoj
+      - MYSQL_DATABASE=dmoj
+    volumes:
+      - $PWD/data/database:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
